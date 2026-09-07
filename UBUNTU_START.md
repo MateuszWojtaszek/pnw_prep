@@ -1,127 +1,111 @@
 # Start na Ubuntu — kolejność kroków
 
-Stan na **2026-09-07, po weryfikacji na maszynie**. Pierwsza wersja tego pliku zakładała
-maszynę świeżo po `git clone`; część kroków jest już wykonana, a jeden z nich (przeniesienie
-repo) zostawił po sobie szkodę, której ówczesna weryfikacja nie wyłapała.
-
-Kroki są w kolejności zależności. Po każdym jest weryfikacja; jeśli nie przechodzi, nie idź dalej.
+Stan na **2026-09-07, wieczór**. Setup jest **domknięty** — poniżej został jeden drobiazg
+kosmetyczny i właściwa robota (etap 1). Plik zostaje w repo jako ślad tego, co i dlaczego
+zostało zrobione, oraz jako instrukcja odtworzenia na kolejnej maszynie.
 
 ---
 
 ## Zrobione — zweryfikowane, nie powtarzaj
 
-| Krok | Stan | Dowód |
-|---|---|---|
-| Repo pod ścieżką z Maca | ✅ | `~/Documents/projects/masters/pnw_prep`, stary katalog nie istnieje |
-| Powiązanie folder → profil `studies_AI` | ✅ | `profileAssociations` → `407f9a50` dla nowej ścieżki |
-| `latexmk` | ✅ | `/usr/bin/latexmk` |
-| `ruff` + `basedpyright` jako dev-zależności | ✅ | grupa `dev` w `pyproject.toml`, commit `cdc7453` wypchnięty |
-| Settings Sync wyłączony | ✅ | `sync.enable = false` w `state.vscdb` |
-| `window.newWindowProfile` | ✅ | linia 34 w `~/.config/Code/User/settings.json` |
-| `~/.claude/settings.json` | ✅ | `model: opus[1m]`, `tui: fullscreen` + `effortLevel`, `theme` |
-| Katalog pamięci projektu | ✅ | `~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/memory` (pusty) |
-| Sterownik GPU | ✅ | RTX 5080, 580.178.04 |
-| 42 rozszerzenia w profilu | ✅ | `code --profile studies_AI --list-extensions \| wc -l` |
+| Krok | Dowód |
+|---|---|
+| Repo pod ścieżką z Maca | `~/Documents/projects/masters/pnw_prep`, stary katalog nie istnieje |
+| Powiązanie folder → profil `studies_AI` | `profileAssociations` → `407f9a50` dla nowej ścieżki |
+| `latexmk` | `/usr/bin/latexmk` |
+| `ruff` + `basedpyright` jako dev-zależności | grupa `dev` w `pyproject.toml`, commit `cdc7453` |
+| **`.venv` odtworzony po przeniesieniu repo** | `rm -rf .venv && uv sync --all-groups`, patrz niżej |
+| Settings Sync wyłączony | `sync.enable = false` w `state.vscdb` |
+| `window.newWindowProfile` | `~/.config/Code/User/settings.json` |
+| Macowe wpisy w `settings.json` profilu `Default` | 19 linii usuniętych, backup `settings.json.bak-20260907` |
+| `~/.claude/CLAUDE.md` | globalne reguły z Załącznika A na miejscu |
+| `~/.claude/settings.json` | `model: opus[1m]`, `tui: fullscreen`, `effortLevel`, `theme` |
+| Katalog pamięci projektu | `~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/memory` |
+| Sterownik GPU | RTX 5080, 580.178.04 |
+| 42 rozszerzenia w profilu | `code --profile studies_AI --list-extensions \| wc -l` |
 
----
+### Pułapka, która kosztowała najwięcej: `.venv` nie przeżywa `mv`
 
-## 1. Napraw `.venv` po przeniesieniu repo — **blokujące**
-
-`mv` z poprzedniej wersji kroku 2 przeniósł też `.venv`. Launchery w `.venv/bin/` mają
-**bezwzględny shebang** wskazujący na starą ścieżkę, więc dziś 39 z nich jest martwych:
+Przeniesienie repo z `~/Documents/pnw_prep` zabrało ze sobą `.venv`, a launchery
+w `.venv/bin/` mają **bezwzględny shebang**:
 
 ```
-#!/home/black-mw/Documents/pnw_prep/.venv/bin/python3   ← katalog już nie istnieje
+#!/home/black-mw/Documents/pnw_prep/.venv/bin/python3   ← katalog już nie istniał
 ```
 
-Objaw: `uv run basedpyright --version` → `Failed to spawn: basedpyright (os error 2)`,
-`sphinx-build` → `bad interpreter`. Plik **istnieje**, brakuje interpretera z shebanga —
-stąd mylący komunikat.
+39 martwych skryptów: `basedpyright` → `Failed to spawn (os error 2)`, `sphinx-build` →
+`bad interpreter`. Plik istnieje, brakuje **interpretera z shebanga** — stąd mylący komunikat.
 
-**Dlaczego poprzednia weryfikacja tego nie złapała:** `ruff` to natywna binarka bez shebanga
-i działa mimo przeniesienia. `uv run ruff check .` przechodziło, więc krok 1 wyglądał na zaliczony,
-a `uv run basedpyright --version` uruchomiłeś dopiero po `mv`. `uv sync` tego nie naprawia —
-porównuje metadane pakietów, nie ścieżki w launcherach („Checked 48 packages", zero zmian).
+Dwie rzeczy, które to przepuściły:
 
-```bash
-cd ~/Documents/projects/masters/pnw_prep
-rm -rf .venv
-uv sync --all-groups
-```
+- `ruff` to natywna binarka bez shebanga i działa mimo przeniesienia, więc `uv run ruff check .`
+  przechodziło i cały krok wyglądał na zaliczony;
+- `uv sync` tego **nie naprawia** — porównuje metadane pakietów, nie ścieżki w launcherach
+  („Checked 48 packages", zero zmian).
 
-Venv jest w całości odtwarzalny z `uv.lock` i jest w `.gitignore` — kasowanie go nic nie kosztuje.
-Na przyszłość: przenosisz repo → od razu odtwarzasz venva, nie migrujesz go.
+Lekcja na przyszłość: **przenosisz repo → od razu `rm -rf .venv && uv sync --all-groups`.**
+Venv jest w `.gitignore` i w całości odtwarzalny z `uv.lock`, więc kasowanie nic nie kosztuje.
 
-**Weryfikacja — wszystkie trzy muszą przejść:**
+### Co dokładnie wyleciało z `settings.json`
 
-```bash
-uv run ruff check .            # All checks passed!
-uv run basedpyright --version  # numer wersji, nie "Failed to spawn"
-uv run sphinx-build --version  # sprawdza grupę docs, też była zepsuta
-```
+Rozszerzenia ESP-IDF i STM32 **są** zainstalowane na Ubuntu, więc macowe ścieżki były
+aktywnie zepsute, nie tylko martwe:
 
----
-
-## 2. Globalne `~/.claude/CLAUDE.md`
-
-Jedyny brakujący plik konfiguracyjny. `~/.claude/settings.json` już jest, ale reguł
-(zakaz gotowców, tło z C++, wymóg dawania opcji) nadal nie ma — do tego czasu obowiązuje
-sekcja „Jak ze mną pracować" z repo, która jest ich zawężoną kopią.
-
-Utwórz `~/.claude/CLAUDE.md` z treścią z **Załącznika A**.
-
-**Weryfikacja:**
-
-```bash
-test -f ~/.claude/CLAUDE.md && echo "global CLAUDE.md ok"
-```
-
-Po utworzeniu można skrócić notkę w `CLAUDE.md` w repo („Globalne instrukcje leżą na Macu…") —
-przestaje być prawdziwa.
-
----
-
-## 3. Sprzątanie po Macu — kosmetyka, nie blokuje
-
-Sync jest wyłączony, więc te wpisy już nie wracają, ale przyjechały wcześniej i zostały
-w `~/.config/Code/User/settings.json` (profil `Default`). Wszystkie wskazują na ścieżki,
-których na Linuksie nie ma:
-
-```bash
-grep -n "mateuszwojtaszek\|homebrew\|parallels\|idf\." ~/.config/Code/User/settings.json
-```
-
-Dziś to 16 linii w trzech grupach:
-
-- `idf.*` (ESP-IDF) — ścieżki `/Users/mateuszwojtaszek/esp/…`, `/opt/homebrew/opt/python@3.13`
-- `parallels-desktop.*` — Parallels na Linuksie nie istnieje, cała sekcja do usunięcia
+- `idf.espIdfPath`, `idf.toolsPath`, `idf.pythonInstallPath` — `/Users/…`, `/opt/homebrew/…`
+- `STM32VSCodeExtension.projectCreator.executablePath` (`/Applications/…app/Contents/MacOS`)
+  i `.cubeCLT.path` (`/opt/ST/…`, na tej maszynie nie istnieje), wraz z blokiem
+  `workbench.settings.applyToAllProfiles`, który już tylko na nie wskazywał
+- cały `parallels-desktop.*` — rozszerzenia nie ma i na Linuksie być nie może
 - `cmake.environment` / `cmake.configureArgs` / `cmake.additionalCompilerSearchDirs` —
-  wskazują na `…-darwin-arm64` i `/opt/homebrew/opt/llvm`
+  `darwin-arm64`, `/opt/homebrew/opt/llvm`
 
-Usuń, co nie ma sensu na Linuksie. Wpisy embedded odtworzysz lokalnymi ścieżkami, kiedy
-faktycznie będziesz wracał do STM32 na tej maszynie — nie rób tego teraz.
+**Zostawione świadomie:** `idf.gitPath: "git"` (poprawne na Linuksie) oraz `idf.telemetry`,
+`idf.showOnboardingOnInit`, `idf.enableStatusBar` — to preferencje zachowania, nie ścieżki;
+kasowanie ich odblokowałoby telemetrię przy powrocie do ESP-IDF.
 
-Dwa martwe wpisy do sprzątnięcia przy okazji (oba nieszkodliwe):
-
-- `profileAssociations` ma wciąż `file:///home/black-mw/Documents/pnw_prep` → `407f9a50`.
-  `Profiles: Reset Workspace Profiles Associations` albo ręcznie w
-  `~/.config/Code/User/globalStorage/storage.json`.
-- `~/.claude/projects/-home-black-mw-Documents-pnw-prep/` — pamięć kluczowana starą ścieżką.
-  Nowy katalog już istnieje i jest pusty, więc przenosić nie ma czego; stary możesz skasować.
-
-**Weryfikacja:** zrestartuj VS Code i powtórz `grep` — wpisy mają nie wracać.
+Ścieżki embedded odtworzysz lokalnie, kiedy faktycznie wrócisz do STM32 na tej maszynie.
 
 ---
 
-## 4. Weryfikacja końcowa
+## 1. Ostatni drobiazg — martwe wpisy po starej ścieżce
 
-Wszystko musi przejść:
+Nieszkodliwe, nic nie blokują.
+
+```bash
+# transkrypt sesji sprzed przeniesienia repo, pod starym kluczem ścieżki
+mv ~/.claude/projects/-home-black-mw-Documents-pnw-prep/*.jsonl \
+   ~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/
+rm -rf ~/.claude/projects/-home-black-mw-Documents-pnw-prep
+```
+
+Drugi wpis to `file:///home/black-mw/Documents/pnw_prep` w `profileAssociations`.
+**Wymaga zamkniętego VS Code** — przy działającym edytorze plik jest nadpisywany stanem
+z pamięci przy wyjściu, więc zewnętrzna edycja przepada:
+
+```bash
+# dopiero po zamknięciu VS Code
+python3 - <<'EOF'
+import json, pathlib
+p = pathlib.Path.home()/'.config/Code/User/globalStorage/storage.json'
+d = json.loads(p.read_text())
+ws = d['profileAssociations']['workspaces']
+ws.pop('file:///home/black-mw/Documents/pnw_prep', None)
+p.write_text(json.dumps(d))
+EOF
+```
+
+Alternatywa z palety: `Profiles: Reset Workspace Profiles Associations` — ale to czyści
+**wszystkie** powiązania, więc trzeba potem na nowo otworzyć projekt w `studies_AI`.
+
+---
+
+## 2. Weryfikacja — stan bieżący, wszystko przechodzi
 
 ```bash
 cd ~/Documents/projects/masters/pnw_prep
 uv run ruff check .                                    # All checks passed!
-uv run basedpyright --version
-uv run sphinx-build --version
+uv run basedpyright                                    # 0 errors, 0 warnings, 0 notes
+uv run sphinx-build --version                          # 9.1.0 — pokrywa grupę docs
 which uv latexmk
 nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
 code --profile "studies_AI" --list-extensions | wc -l  # 42
@@ -131,25 +115,26 @@ git status --short                                     # czysto
 
 ---
 
-## 5. Pierwsze zadanie: etap 1 z planu
+## 3. Właściwa robota: etap 1 z planu
 
 Środowisko stoi, ale **projekt nadal nie ma torcha, Hydry ani MLflow** —
-`dependencies = []` w `pyproject.toml`. To jest pierwsza rzecz z etapu 1.
+`dependencies = []` w `pyproject.toml`.
+
+Warunek wejścia, wciąż otwarty: **decyzja o datasecie.** PanNuke to propozycja czekająca
+na potwierdzenie (punkt 4 „decyzji zamkniętych" w `CLAUDE.md`) — bez niej etap 1 nie ma
+czego wczytać.
 
 Przy torchu pamiętaj: domyślne koło z PyPI nie wystarczy, bo 5080 to Blackwell (sm_120)
 i potrzebny jest build `cu128+`. W `uv` robi się to przez zadeklarowanie osobnego indeksu
 (`[[tool.uv.index]]`) i przypięcie do niego pakietu w `[tool.uv.sources]` — **nie** przez
 `pip install` do venva obok `uv.lock`.
 
-Otwartą decyzją zakresową pozostaje dataset: **PanNuke** to propozycja czekająca na twoje
-potwierdzenie (punkt 4 „decyzji zamkniętych" w `CLAUDE.md`) — bez niej etap 1 nie ma czego wczytać.
-
 Kryterium ukończenia etapu 1: widzisz obok siebie patch i jego maskę instancyjną,
 a MLflow zalogował pusty przebieg.
 
 ---
 
-## Załącznik A — treść `~/.claude/CLAUDE.md`
+## Załącznik A — treść `~/.claude/CLAUDE.md` (już zastosowana)
 
 ````markdown
 # Instrukcje

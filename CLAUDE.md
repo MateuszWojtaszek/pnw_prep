@@ -27,8 +27,8 @@ dlaczego"), sekcję „świadomie pomijam", i **poczekaj na moją decyzję**. Ni
 nie konfiguruj hurtem. Weryfikuj wersje i ID paczek przed poleceniem — kilka razy
 uratowało to przed porzuconą zależnością.
 
-> Globalne instrukcje leżą w `~/.claude/CLAUDE.md` na Macu. Na Ubuntu trzeba je
-> przenieść — do tego czasu obowiązuje ta sekcja.
+> Globalne instrukcje są w `~/.claude/CLAUDE.md` — przeniesione na Ubuntu 2026-09-07.
+> Ta sekcja jest ich zawężeniem do tego projektu i wygrywa tam, gdzie się różnią.
 
 ---
 
