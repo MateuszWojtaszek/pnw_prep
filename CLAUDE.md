@@ -70,7 +70,8 @@ w `[tool.uv.sources]` — nie przez `pip install` do venva obok `uv.lock`.
 
 ### Edytor
 
-Profil VS Code `studies_AI` (31 rozszerzeń, ustawienia, setup Sphinksa) jest opisany
+Profil VS Code `studies_AI` (31 rozszerzeń jawnych / 40 zainstalowanych, ustawienia,
+setup Sphinksa) jest opisany
 w **`VSCODE_studies_AI.md` w katalogu głównym repo** — kopia przywieziona po to, żeby
 środowisko dało się odtworzyć jednym `git clone`.
 

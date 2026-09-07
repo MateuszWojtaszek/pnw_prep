@@ -1,6 +1,8 @@
 # Profil VS Code: `studies_AI`
 
-Ściąga do profilu utworzonego 2026-09-06. 31 rozszerzeń, świadomie wybranych pod Python/ML/magisterkę.
+Ściąga do profilu utworzonego 2026-09-06. **31 rozszerzeń wybranych jawnie**; z zależnościami,
+które VS Code dociąga sam (satelity Jupytera, `debugpy`, `remote-explorer`, `remote-ssh-edit`),
+daje to **40 zainstalowanych**. Te dwie liczby łatwo pomylić — patrz tabela niżej.
 
 Profil istnieje na dwóch maszynach. **ID profilu nadaje lokalna instalacja VS Code i jest różne
 na każdej z nich** — poniżej oba.
@@ -10,7 +12,14 @@ na każdej z nich** — poniżej oba.
 | Katalog profilu | `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
 | Settings profilu | `.../68e22d86/settings.json` | `.../407f9a50/settings.json` |
 | Backup poprzedniego stanu | `~/Library/Application Support/Code/User/_backup_20260906_193317/` | — (profil zakładany od zera) |
-| Rozszerzeń w profilu | 31 | 42 (36 jawnych + 6 zależności) |
+| Rozszerzeń **zainstalowanych** | 40 | 42 |
+| w tym wybranych **jawnie** | 31 | 36 |
+
+> Realna różnica między maszynami to **dwa zainstalowane rozszerzenia**, nie jedenaście —
+> rozjazd w wierszu „jawnie" bierze się stąd, że na Ubuntu część satelitów instalowano
+> ręcznie, a na Macu przyszły same. Jedno z dwóch to `swyddfa.esbonio` (na Macu świadomie
+> pominięty, na Ubuntu wybrany). Żeby domknąć: `code --profile "studies_AI" --list-extensions`
+> na obu maszynach i `diff`.
 
 Profil na Ubuntu odtworzony 2026-09-07. Różnice względem Maca opisuje sekcja
 [12. Ubuntu — czym się różni](#12-ubuntu--czym-się-różni). **VS Code jest tu ze snapa**
@@ -126,7 +135,9 @@ shouldUseUv = async (e, t) => (… || getConfiguration("python-envs").get("alway
 runUV = (…) => spawnProcess("uv", …)
 ```
 
-Czyli warunkiem jest `alwaysUseUv` **oraz `uv` widoczne w PATH**. Jeśli uv nie ma w PATH,
+Warunkiem **koniecznym** jest wyłącznie `isUvInstalled`, czyli **`uv` widoczne w PATH** —
+`alwaysUseUv` stoi po prawej stronie `||`, więc wystarczy, że zadziała pierwszy człon
+(wykropkowany wyżej). Ustawienie zostawiamy na `true` dla pewności. Jeśli uv nie ma w PATH,
 rozszerzenie **cicho spada do `venv` + `pip`** — bez błędu, bez ostrzeżenia. To jest
 dokładnie ten tryb awarii, którego nie zauważysz, dopóki nie sprawdzisz, czym powstało `.venv`.
 
