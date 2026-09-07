@@ -75,16 +75,15 @@ setup Sphinksa) jest opisany
 w **`VSCODE_studies_AI.md` w katalogu głównym repo** — kopia przywieziona po to, żeby
 środowisko dało się odtworzyć jednym `git clone`.
 
-Oryginał żyje w `~/Documents/projects/masters/VSCODE_studies_AI.md` (obsługuje wszystkie
-przedmioty, nie tylko ten projekt), a wersja do czytania jest tutaj:
+Kopia w repo jest **źródłem prawdy**; wersja do czytania jest tutaj:
 https://claude.ai/code/artifact/c7ca13d5-d776-4ed5-8df2-4677412a13c2
-**Przy zmianie profilu trzeba zaktualizować wszystkie trzy.**
+**Przy zmianie profilu trzeba zaktualizować obie.** (Oryginał z Maca,
+`~/Documents/projects/masters/VSCODE_studies_AI.md`, na Ubuntu nie istnieje — trzecia kopia
+odpadła razem z tamtą maszyną.)
 
-Dokument opisuje macOS — ścieżki profilu są w nim postaci
-`~/Library/Application Support/Code/User/profiles/<id>/`. Na Ubuntu ten sam katalog to
-`~/.config/Code/User/profiles/<id>/`, a identyfikator profilu będzie inny, bo nadaje go
-lokalna instalacja VS Code. Reszta (lista rozszerzeń, `settings.json`, `window.newWindowProfile`)
-przenosi się bez zmian.
+Dokument jest **Ubuntu-first** od 2026-09-07: profil to `~/.config/Code/User/profiles/407f9a50/`,
+skróty w formie `Ctrl+…`, a macowe ścieżki i liczby zebrane są w sekcji „13. Historia".
+Identyfikator profilu nadaje lokalna instalacja VS Code, więc na innej maszynie będzie inny.
 
 Pułapki stamtąd, które łatwo powtórzyć na nowej maszynie:
 

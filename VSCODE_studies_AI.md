@@ -1,30 +1,30 @@
 # Profil VS Code: `studies_AI`
 
-Ściąga do profilu utworzonego 2026-09-06. **31 rozszerzeń wybranych jawnie**; z zależnościami,
-które VS Code dociąga sam (satelity Jupytera, `debugpy`, `remote-explorer`, `remote-ssh-edit`),
-daje to **40 zainstalowanych**. Te dwie liczby łatwo pomylić — patrz tabela niżej.
+Ściąga do profilu na **Ubuntu 24 / `black_mw`** — od 2026-09-07 jedynej maszynie roboczej.
+Dokument powstał dzień wcześniej na macOS; ślady tamtej maszyny zebrane są w
+[13. Historia: skąd macowe ścieżki](#13-historia-skąd-macowe-ścieżki), reszta opisuje Linuksa.
 
-Profil istnieje na dwóch maszynach. **ID profilu nadaje lokalna instalacja VS Code i jest różne
-na każdej z nich** — poniżej oba.
+| | |
+|---|---|
+| Katalog profilu | `~/.config/Code/User/profiles/407f9a50/` |
+| Settings profilu | `~/.config/Code/User/profiles/407f9a50/settings.json` |
+| Settings globalne (profil `Default`) | `~/.config/Code/User/settings.json` |
+| Rozszerzeń **zainstalowanych** | 42 |
+| w tym wybranych **jawnie** | 36 |
+| VS Code | 1.128.1, ze snapa (`/snap/bin/code`, classic confinement) |
+| Katalog rozszerzeń | `~/.vscode/extensions` — 3,0 GB, **wspólny dla wszystkich profili** |
 
-| | macOS (M3 Pro) | **Ubuntu 24 / `black_mw` — maszyna robocza** |
-|---|---|---|
-| Katalog profilu | `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
-| Settings profilu | `.../68e22d86/settings.json` | `.../407f9a50/settings.json` |
-| Backup poprzedniego stanu | `~/Library/Application Support/Code/User/_backup_20260906_193317/` | — (profil zakładany od zera) |
-| Rozszerzeń **zainstalowanych** | 40 | 42 |
-| w tym wybranych **jawnie** | 31 | 36 |
+**ID profilu `407f9a50` nadaje lokalna instalacja VS Code.** Nie jest przenośne: na innej
+maszynie ten sam profil dostanie inny identyfikator, więc ścieżki z tego dokumentu sprawdzaj
+przez `Profiles: Show Contents`, zamiast kopiować w ciemno.
 
-> Realna różnica między maszynami to **dwa zainstalowane rozszerzenia**, nie jedenaście —
-> rozjazd w wierszu „jawnie" bierze się stąd, że na Ubuntu część satelitów instalowano
-> ręcznie, a na Macu przyszły same. Jedno z dwóch to `swyddfa.esbonio` (na Macu świadomie
-> pominięty, na Ubuntu wybrany). Żeby domknąć: `code --profile "studies_AI" --list-extensions`
-> na obu maszynach i `diff`.
+Dwie liczby rozszerzeń łatwo pomylić: **jawnie wybrane** to te, które instalowałeś sam,
+**zainstalowane** dolicza zależności dociągane przez VS Code (satelity Jupytera, `debugpy`,
+`remote-explorer`, `remote-ssh-edit`). Stan bieżący sprawdzasz zawsze tak:
 
-Profil na Ubuntu odtworzony 2026-09-07. Różnice względem Maca opisuje sekcja
-[12. Ubuntu — czym się różni](#12-ubuntu--czym-się-różni). **VS Code jest tu ze snapa**
-(`/snap/bin/code`, classic confinement), ale katalogi konfiguracji są zwykłe:
-`~/.config/Code/User/` i wspólne `~/.vscode/extensions` (2,7 GB).
+```bash
+code --profile "studies_AI" --list-extensions --show-versions | wc -l
+```
 
 ---
 
@@ -41,7 +41,8 @@ Profil na Ubuntu odtworzony 2026-09-07. Różnice względem Maca opisuje sekcja
 9. [Wygoda i czytelność](#9-wygoda-i-czytelność)
 10. [Ściąga: co ustawić najpierw](#10-ściąga-co-ustawić-najpierw)
 11. [Dokumentacja kodu: Sphinx](#11-dokumentacja-kodu-sphinx)
-12. [Ubuntu — czym się różni](#12-ubuntu--czym-się-różni)
+12. [Ta maszyna: pułapki i ustalenia](#12-ta-maszyna-pułapki-i-ustalenia)
+13. [Historia: skąd macowe ścieżki](#13-historia-skąd-macowe-ścieżki)
 
 ---
 
@@ -73,11 +74,11 @@ w settings profilu Default (klucz ma `scope: application`, więc mieszka tam i d
 Efekt: **nowe okna i foldery bez zapisanego powiązania** startują w `studies_AI`.
 
 **Uwaga na kolejność pierwszeństwa:** zapisane powiązanie folder→profil **wygrywa**
-z `newWindowProfile`. Twoje stare projekty (`ml`, `pgm`, `rep_lern`, `sieci`, `pnw_prep`…)
-mają powiązanie z `Default` i dalej będą się tam otwierać, dopóki nie przepniesz ich
-komendą `code --profile "studies_AI" <folder>`.
+z `newWindowProfile`. Stare projekty (`ml`, `pgm`, `rep_lern`, `sieci`…) mają powiązanie
+z `Default` i dalej będą się tam otwierać, dopóki nie przepniesz ich komendą
+`code --profile "studies_AI" <folder>`. `pnw_prep` jest już przepięty.
 
-W GUI: `Cmd+Shift+P` → `Profiles: Switch Profile` / `Profiles: Show Contents`.
+W GUI: `Ctrl+Shift+P` → `Profiles: Switch Profile` / `Profiles: Show Contents`.
 Reset wszystkich powiązań: `Profiles: Reset Workspace Profiles Associations`.
 
 ---
@@ -288,7 +289,7 @@ Albo prawy klik na `.csv` → `Open in Data Wrangler`.
 
 ### `ms-toolsai.tensorboard`
 TensorBoard w zakładce edytora zamiast w przeglądarce.
-`Cmd+Shift+P` → `Python: Launch TensorBoard`, wskazujesz katalog z logami.
+`Ctrl+Shift+P` → `Python: Launch TensorBoard`, wskazujesz katalog z logami.
 
 Jeśli używasz Weights & Biases zamiast TB — to rozszerzenie możesz spokojnie wyrzucić:
 ```bash
@@ -302,7 +303,7 @@ Każda kolumna CSV innym kolorem. Brzmi trywialnie, ale przy 30 kolumnach to ró
 między „widzę" a „liczę przecinki".
 
 **Moc:** wbudowany **RBQL** — SQL-owe zapytania na pliku CSV bez ładowania go do pandas.
-`Cmd+Shift+P` → `RBQL`, potem np.:
+`Ctrl+Shift+P` → `RBQL`, potem np.:
 ```sql
 SELECT a.name, a.score WHERE a.score > 0.8 ORDER BY a.score DESC
 ```
@@ -373,7 +374,7 @@ przypisane do profilu Default. Jeśli chcesz je tutaj, przekopiuj do settings pr
 
 ### `mhutchie.git-graph`
 Lekki, robi jedną rzecz: czytelny graf gałęzi.
-`Cmd+Shift+P` → `Git Graph: View Git Graph`. Z grafu klikasz checkout, merge, cherry-pick, rebase.
+`Ctrl+Shift+P` → `Git Graph: View Git Graph`. Z grafu klikasz checkout, merge, cherry-pick, rebase.
 Nakłada się funkcjonalnie z GitLens — jak uznasz, że to duplikat, zostaw jeden.
 
 ---
@@ -391,7 +392,7 @@ lokalnie masz tylko UI. Czyli basedpyright analizuje kod na maszynie, gdzie stoi
 i *Workspace* (Python, Jupyter — zdalnie) i te drugie **musisz zainstalować osobno na hoście**.
 VS Code sam o to zapyta przy pierwszym połączeniu.
 
-`Cmd+Shift+P` → `Remote-SSH: Connect to Host`. Hosty czyta z `~/.ssh/config`.
+`Ctrl+Shift+P` → `Remote-SSH: Connect to Host`. Hosty czyta z `~/.ssh/config`.
 
 ```jsonc
 "remote.SSH.remotePlatform": { "black_mw": "linux" },
@@ -408,7 +409,7 @@ Sensowne, gdy projekt musi się odtworzyć u prowadzącego 1:1.
 
 ### `james-yu.latex-workshop`
 Pod magisterkę. Kompilacja na zapis, podgląd PDF w drugiej kolumnie,
-**SyncTeX** (`Cmd+klik` w PDF skacze do źródła i odwrotnie), podgląd wzorów po najechaniu,
+**SyncTeX** (`Ctrl+klik` w PDF skacze do źródła i odwrotnie), podgląd wzorów po najechaniu,
 autouzupełnianie `\cite{}` i `\ref{}` z `.bib`.
 
 ```jsonc
@@ -438,7 +439,7 @@ wskazuje konstrukcje kalkowane z polskiego.
 Nieznane słowo → żarówka → `Add to dictionary`, ląduje w `ltex.dictionary`.
 
 ### `yzhang.markdown-all-in-one`
-Skróty (`Cmd+B`, `Cmd+I`), automatyczne listy i checkboxy,
+Skróty (`Ctrl+B`, `Ctrl+I`), automatyczne listy i checkboxy,
 **auto-generowany spis treści** (`Markdown All in One: Create Table of Contents` —
 aktualizuje się przy zapisie), formatowanie tabel, eksport do HTML.
 
@@ -557,8 +558,8 @@ Domyślnie pomija ścieżki względne wobec katalogu głównego:
 ---
 
 ### `alefragnani.Bookmarks`
-`Cmd+Alt+K` postaw/zdejmij zakładkę, `Cmd+Alt+L` skok do następnej,
-`Cmd+Alt+J` do poprzedniej. Panel Bookmarks w sidebarze.
+`Ctrl+Alt+K` postaw/zdejmij zakładkę, `Ctrl+Alt+L` skok do następnej,
+`Ctrl+Alt+J` do poprzedniej. Panel Bookmarks w sidebarze.
 
 Sens w 800-liniowym `train.py`, gdzie krążysz między definicją dataloadera, pętlą treningu
 i ewaluacją. Zakładki żyją w obrębie sesji workspace, nie zaśmiecają repo.
@@ -595,7 +596,7 @@ gradient, przewijając plik, zamiast czytać liczby.
 
 ## 10. Ściąga: co ustawić najpierw
 
-Trzy rzeczy do dopisania w `~/Library/Application Support/Code/User/profiles/68e22d86/settings.json`,
+Trzy rzeczy do dopisania w `~/.config/Code/User/profiles/407f9a50/settings.json`,
 gdy już poklikasz i zobaczysz, co Ci przeszkadza:
 
 ```jsonc
@@ -696,7 +697,7 @@ docs/
 uv run --group docs sphinx-build -b html docs docs/_build/html
 
 # otwórz
-open docs/_build/html/index.html
+xdg-open docs/_build/html/index.html
 
 # tryb "watch" — serwer z auto-reloadem (zainstalowany)
 uv run --group docs sphinx-autobuild --watch src --open-browser docs docs/_build/html
@@ -817,10 +818,10 @@ code --profile "studies_AI" --install-extension swyddfa.esbonio
 
 ---
 
-## 12. Ubuntu — czym się różni
+## 12. Ta maszyna: pułapki i ustalenia
 
-Odtworzenie profilu na `black_mw` 2026-09-07. Poniżej wyłącznie rzeczy, które **nie przeniosły
-się 1:1** — reszta dokumentu obowiązuje bez zmian.
+Rzeczy, które kosztowały czas przy stawianiu profilu na `black_mw` i wracają przy każdej
+kolejnej instalacji Linuksa.
 
 ### Tworzenie profilu z CLI: pułapka
 
@@ -832,19 +833,13 @@ workspace with the given profile… If the profile does not exist, a new empty o
 Kolejność, która działa — pierwsza komenda przy okazji zapisuje powiązanie folder→profil:
 
 ```bash
-code --profile "studies_AI" ~/Documents/pnw_prep     # tworzy profil + wiąże folder
+code --profile "studies_AI" ~/Documents/projects/masters/pnw_prep   # tworzy profil + wiąże folder
 code --profile "studies_AI" --install-extension ms-python.python
 ```
 
-### Ścieżki
-
-| macOS | Ubuntu |
-|---|---|
-| `~/Library/Application Support/Code/User/` | `~/.config/Code/User/` |
-| `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
-
-`~/.vscode/extensions` jest w tym samym miejscu na obu systemach i jest **wspólne dla
-wszystkich profili** — dopięcie rozszerzenia do profilu nic nie pobiera.
+> ⚠️ **Powiązanie folder→profil jest kluczowane ścieżką bezwzględną.** Przeniesienie projektu
+> (`mv`) je zrywa i folder otworzy się w `Default`. Naprawa to ta sama komenda co wyżej,
+> uruchomiona na nowej ścieżce.
 
 ### Wersje: kanał stabilny vs pre-release
 
@@ -860,21 +855,22 @@ z niego bywają wyraźnie wyższe niż to, co instaluje VS Code:
 To **nie jest** nieaktualna instalacja — `--update-extensions` odpowiada `No extension to update`.
 Nie „naprawiaj" tego ręcznie.
 
-### LaTeX: brakujący `latexmk`
+### LaTeX: `latexmk` trzeba doinstalować osobno
 
-Są `texlive-base`, `texlive-latex-extra`, `texlive-xetex` (czyli `xelatex` i `pdflatex` działają),
-ale **nie ma `latexmk`**, a to jest domyślny recipe LaTeX Workshopa — kompilacja wywali się
-przy pierwszym zapisie:
+Ubuntu daje `texlive-base`, `texlive-latex-extra` i `texlive-xetex` (czyli `xelatex`
+i `pdflatex` działają), ale **nie `latexmk`** — a to domyślny recipe LaTeX Workshopa,
+więc kompilacja wywala się przy pierwszym zapisie. Doinstalowane 2026-09-07:
 
 ```bash
-sudo apt install latexmk
+sudo apt install -y latexmk    # tu: Latexmk 4.83
 ```
 
-### Remote-SSH stracił sens
+### Remote-SSH: zainstalowany, bez zastosowania
 
-Dokument zakładał `ssh-remote+black_mw` jako drogę do GPU. Na tej maszynie GPU jest **lokalne**
-(RTX 5080, driver 580.178.04, CUDA 12.9 w PATH), a `~/.ssh/config` nie istnieje.
-Rozszerzenia remote zostają w profilu na przyszłość, ale dziś nic nie obsługują.
+Pierwotny plan zakładał `ssh-remote+black_mw` jako drogę do GPU. **To jest `black_mw`** —
+GPU siedzi lokalnie (RTX 5080, driver 580.178.04, CUDA 12.9 w `/usr/local/cuda-12.9/bin`),
+a `~/.ssh/config` nie istnieje. Rozszerzenia remote zostają w profilu na przyszłość
+(klaster, maszyna w chmurze), ale dziś nic nie obsługują.
 
 ### Środowisko: conda usunięta
 
@@ -888,18 +884,46 @@ odtwarzaniu: **7 z 10 środowisk było uszkodzonych** — miały pakiety w `site
 a `conda run -n <env>` po cichu wykonywał się w `base`. Wiarygodne są pliki
 `*.packages.txt` (czytane wprost z `dist-info`), nie `*.yml`.
 
-### Settings Sync miesza między maszynami
+### Settings Sync: wyłączony 2026-09-07
 
-Sync jest **włączony** i ściąga profil Default z Maca. Widać to gołym okiem: po starcie
-VS Code `cmake.environment` w `~/.config/Code/User/settings.json` wraca do ścieżek
-`/Users/mateuszwojtaszek/…darwin-arm64`, nadpisując linuksowe. W settings Default siedzą też
-`parallels-desktop.*`, `/opt/homebrew/*` i `idf.*` z Maca.
+Dopóki był włączony, ściągał profil `Default` z Maca i **nadpisywał linuksowe ścieżki
+macowymi na żywo** — `cmake.environment` wracało do `/Users/…darwin-arm64` po każdym starcie.
+Profilu `studies_AI` w chmurze nigdy nie było (sync profili zawierał tylko „Agents"), więc
+sync nic tu nie wnosił, a szkodził.
 
-Profilu `studies_AI` z Maca **w chmurze nie ma** (sync profili zawiera tylko „Agents"), więc
-`407f9a50` jest lokalny i to on jest wypychany w górę. Skutek uboczny: `window.newWindowProfile:
-"studies_AI"` przyszło z Maca samo, bez ustawiania.
+Stan docelowy, zweryfikowany: `sync.enable = false`
+(`~/.config/Code/User/globalStorage/state.vscdb`), konfiguracja bez śladów po Macu.
+Wyłączenie **nie kasuje danych w chmurze** — jeśli kiedyś wrócisz na drugą maszynę,
+zastaniesz je nietknięte.
 
-Decyzja, czy zostawić sync włączony, jest otwarta — patrz `CLAUDE.md`.
+Skutek uboczny do zapamiętania: `window.newWindowProfile: "studies_AI"` **przyszło z Maca
+przez sync**, nie było ustawiane lokalnie. Po wyłączeniu sync klucz trzeba było utrzymać
+ręcznie w `~/.config/Code/User/settings.json` (ma `scope: application`, więc mieszka
+w profilu `Default`, nie w `studies_AI`).
+
+---
+
+## 13. Historia: skąd macowe ścieżki
+
+Profil powstał 2026-09-06 na macOS (M3 Pro) i został odtworzony na Ubuntu 2026-09-07.
+Ta sekcja istnieje po to, żeby starsze commity, notatki i artifacty dało się czytać —
+**nic z niej nie jest dziś aktualną instrukcją.**
+
+| Wtedy: macOS | Dziś: Ubuntu |
+|---|---|
+| `~/Library/Application Support/Code/User/` | `~/.config/Code/User/` |
+| `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
+| `Cmd+Shift+P`, `Cmd+Alt+K` | `Ctrl+Shift+P`, `Ctrl+Alt+K` |
+| `open <plik>` | `xdg-open <plik>` |
+| 40 rozszerzeń zainstalowanych / 31 jawnie | 42 / 36 |
+
+Różnica w liczbie rozszerzeń to realnie **dwa** — rozjazd w wierszu „jawnie" bierze się stąd,
+że na Ubuntu część satelitów instalowano ręcznie, a na Macu przyszły same. Jedno z dwóch to
+`swyddfa.esbonio`: na Macu świadomie pominięty, tutaj wybrany (jest w profilu).
+
+Backup stanu sprzed założenia profilu (`_backup_20260906_193317/`) leży **wyłącznie na Macu**.
+Na Ubuntu profil zakładany był od zera, więc odpowiednika nie ma — punkty wycofania na tej
+maszynie to kopie robione ad hoc, opisane w [Awaryjnie](#awaryjnie).
 
 ---
 
@@ -909,19 +933,38 @@ Decyzja, czy zostawić sync włączony, jest otwarta — patrz `CLAUDE.md`.
 # co jest w profilu
 code --profile "studies_AI" --list-extensions --show-versions
 
-# Pylance wrócił jako zależność Pythona i dubluje basedpyrighta
+# Pylance wrócił jako zależność ms-python.python i dubluje basedpyrighta
 code --profile "studies_AI" --uninstall-extension ms-python.vscode-pylance
 
-# --- macOS: cofnięcie całego setupu profili (VS Code MUSI być zamknięty) ---
-cp ~/Library/Application\ Support/Code/User/_backup_20260906_193317/settings.json \
-   ~/Library/Application\ Support/Code/User/settings.json
-cp ~/Library/Application\ Support/Code/User/_backup_20260906_193317/storage.json \
-   ~/Library/Application\ Support/Code/User/globalStorage/storage.json
+# folder otworzył się w Default zamiast studies_AI (np. po przeniesieniu projektu)
+code --profile "studies_AI" ~/Documents/projects/masters/<projekt>
 
-# --- Ubuntu: odpięcie profilu bez kasowania go ---
-# w GUI: Profiles: Reset Workspace Profiles Associations
-# ręcznie: usuń wpis 407f9a50 z profileAssociations w
-#   ~/.config/Code/User/globalStorage/storage.json
+# odpięcie profilu bez kasowania go — w GUI:
+#   Profiles: Reset Workspace Profiles Associations   (czyści WSZYSTKIE powiązania)
+```
+
+**Punkty wycofania na tej maszynie** — kopie zrobione 2026-09-07 przy czyszczeniu konfiguracji
+z macowych wpisów:
+
+```bash
+~/.config/Code/User/settings.json.bak-20260907                 # settings profilu Default
+~/.config/Code/User/globalStorage/storage.json.bak-20260907    # m.in. profileAssociations
+```
+
+> ⚠️ **`storage.json` edytujesz wyłącznie przy zamkniętym VS Code.** Działający edytor trzyma
+> ten stan w pamięci i nadpisuje plik przy wyjściu, więc zewnętrzna zmiana po cichu przepada.
+> `settings.json` tego problemu nie ma — jest obserwowany i wczytywany na żywo.
+
+Ręczne usunięcie pojedynczego powiązania folder→profil (VS Code zamknięty):
+
+```bash
+python3 - <<'EOF'
+import json, pathlib
+p = pathlib.Path.home()/'.config/Code/User/globalStorage/storage.json'
+d = json.loads(p.read_text())
+d['profileAssociations']['workspaces'].pop('file:///pełna/ścieżka/do/folderu', None)
+p.write_text(json.dumps(d))
+EOF
 ```
 
 ---
