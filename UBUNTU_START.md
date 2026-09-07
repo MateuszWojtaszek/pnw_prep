@@ -18,6 +18,7 @@ zostało zrobione, oraz jako instrukcja odtworzenia na kolejnej maszynie.
 | Settings Sync wyłączony | `sync.enable = false` w `state.vscdb` |
 | `window.newWindowProfile` | `~/.config/Code/User/settings.json` |
 | Macowe wpisy w `settings.json` profilu `Default` | 19 linii usuniętych, backup `settings.json.bak-20260907` |
+| Reszta śladów po Macu w konfiguracji VS Code | `profileAssociations`, `History/` settings.json, `sync/` — usunięte 2026-09-07 |
 | `~/.claude/CLAUDE.md` | globalne reguły z Załącznika A na miejscu |
 | `~/.claude/settings.json` | `model: opus[1m]`, `tui: fullscreen`, `effortLevel`, `theme` |
 | Katalog pamięci projektu | `~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/memory` |
@@ -67,35 +68,18 @@ kasowanie ich odblokowałoby telemetrię przy powrocie do ESP-IDF.
 
 ---
 
-## 1. Ostatni drobiazg — martwe wpisy po starej ścieżce
+## 1. Ostatni drobiazg — transkrypt pod starą ścieżką
 
-Nieszkodliwe, nic nie blokują.
+Jedyne, co zostało po przeniesieniu repo. Nieszkodliwe: transkrypt sesji sprzed `mv`
+leży w katalogu pamięci kluczowanym **starą** ścieżką projektu.
 
 ```bash
-# transkrypt sesji sprzed przeniesienia repo, pod starym kluczem ścieżki
 mv ~/.claude/projects/-home-black-mw-Documents-pnw-prep/*.jsonl \
-   ~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/
-rm -rf ~/.claude/projects/-home-black-mw-Documents-pnw-prep
+   ~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/ \
+&& rm -rf ~/.claude/projects/-home-black-mw-Documents-pnw-prep
 ```
 
-Drugi wpis to `file:///home/black-mw/Documents/pnw_prep` w `profileAssociations`.
-**Wymaga zamkniętego VS Code** — przy działającym edytorze plik jest nadpisywany stanem
-z pamięci przy wyjściu, więc zewnętrzna edycja przepada:
-
-```bash
-# dopiero po zamknięciu VS Code
-python3 - <<'EOF'
-import json, pathlib
-p = pathlib.Path.home()/'.config/Code/User/globalStorage/storage.json'
-d = json.loads(p.read_text())
-ws = d['profileAssociations']['workspaces']
-ws.pop('file:///home/black-mw/Documents/pnw_prep', None)
-p.write_text(json.dumps(d))
-EOF
-```
-
-Alternatywa z palety: `Profiles: Reset Workspace Profiles Associations` — ale to czyści
-**wszystkie** powiązania, więc trzeba potem na nowo otworzyć projekt w `studies_AI`.
+Po przeniesieniu ta sesja pojawi się w `claude --resume` pod bieżącym projektem.
 
 ---
 
