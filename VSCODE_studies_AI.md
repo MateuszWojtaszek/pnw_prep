@@ -2,9 +2,20 @@
 
 Ściąga do profilu utworzonego 2026-09-06. 31 rozszerzeń, świadomie wybranych pod Python/ML/magisterkę.
 
-- **Lokalizacja profilu:** `~/Library/Application Support/Code/User/profiles/68e22d86/`
-- **Settings profilu:** `.../68e22d86/settings.json`
-- **Backup poprzedniego stanu:** `~/Library/Application Support/Code/User/_backup_20260906_193317/`
+Profil istnieje na dwóch maszynach. **ID profilu nadaje lokalna instalacja VS Code i jest różne
+na każdej z nich** — poniżej oba.
+
+| | macOS (M3 Pro) | **Ubuntu 24 / `black_mw` — maszyna robocza** |
+|---|---|---|
+| Katalog profilu | `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
+| Settings profilu | `.../68e22d86/settings.json` | `.../407f9a50/settings.json` |
+| Backup poprzedniego stanu | `~/Library/Application Support/Code/User/_backup_20260906_193317/` | — (profil zakładany od zera) |
+| Rozszerzeń w profilu | 31 | 42 (36 jawnych + 6 zależności) |
+
+Profil na Ubuntu odtworzony 2026-09-07. Różnice względem Maca opisuje sekcja
+[12. Ubuntu — czym się różni](#12-ubuntu--czym-się-różni). **VS Code jest tu ze snapa**
+(`/snap/bin/code`, classic confinement), ale katalogi konfiguracji są zwykłe:
+`~/.config/Code/User/` i wspólne `~/.vscode/extensions` (2,7 GB).
 
 ---
 
@@ -21,6 +32,7 @@
 9. [Wygoda i czytelność](#9-wygoda-i-czytelność)
 10. [Ściąga: co ustawić najpierw](#10-ściąga-co-ustawić-najpierw)
 11. [Dokumentacja kodu: Sphinx](#11-dokumentacja-kodu-sphinx)
+12. [Ubuntu — czym się różni](#12-ubuntu--czym-się-różni)
 
 ---
 
@@ -86,13 +98,37 @@ Komendy: `Python Envs: Create Environment`, `Python Envs: Manage Packages`.
 
 **Ustawienia:**
 ```jsonc
-"python-envs.alwaysUseUv": true,              // domyślnie true — uv zamiast venv+pip
-"python.useEnvsExtension": true,              // przełącza stary picker na nowy
+"python-envs.alwaysUseUv": true,               // domyślnie true — uv zamiast venv+pip
+"python.useEnvironmentsExtension": true,       // domyślnie FALSE — bez tego panelu nie ma
 "python-envs.terminal.autoActivationType": "command"
 // tryby: "shellStartup" (aktywacja w profilu shella, najszybsze),
 //        "command" (domyślne, wysyła `activate` do terminala),
 //        "off"
 ```
+
+> ⚠️ **Klucz nazywa się `python.useEnvironmentsExtension`, nie `python.useEnvsExtension`.**
+> Ta druga nazwa (wcześniej w tym dokumencie) nie istnieje w `ms-python.python` — sprawdzone
+> w 2026.4.0, gdzie w `contributes.configuration` jest tylko pełna forma. Wpisana błędnie
+> nie zgłasza się jako literówka, po prostu nic nie robi.
+>
+> Domyślna wartość to **`false`**, więc bez jawnego ustawienia panel Python Environments
+> w ogóle się nie pojawi. Zmiana **wymaga przeładowania okna**.
+
+**Jak dokładnie wchodzi tu uv — wbrew temu, co sugeruje nazwa ustawienia.**
+Nie ma osobnego menedżera środowisk „uv". W `contributes` rozszerzenia są tylko
+`ms-python.python:venv`, `:pip`, `:conda`, `:poetry`, `:pyenv`, `:pipenv`, `:system`,
+a domyślne pozostają `defaultEnvManager = ms-python.python:venv` i
+`defaultPackageManager = ms-python.python:pip`. **Tego nie zmieniaj** — uv nie jest osobną
+pozycją na tej liście, tylko *podmienia się pod* menedżer `venv`. W kodzie rozszerzenia:
+
+```js
+shouldUseUv = async (e, t) => (… || getConfiguration("python-envs").get("alwaysUseUv", !0)) && isUvInstalled(e)
+runUV = (…) => spawnProcess("uv", …)
+```
+
+Czyli warunkiem jest `alwaysUseUv` **oraz `uv` widoczne w PATH**. Jeśli uv nie ma w PATH,
+rozszerzenie **cicho spada do `venv` + `pip`** — bez błędu, bez ostrzeżenia. To jest
+dokładnie ten tryb awarii, którego nie zauważysz, dopóki nie sprawdzisz, czym powstało `.venv`.
 
 Jeśli terminal Ci nie aktywuje env-a automatycznie — to jest ten ostatni klucz.
 `shellStartup` bywa szybsze i mniej nachalne niż domyślne `command`.
@@ -770,6 +806,92 @@ code --profile "studies_AI" --install-extension swyddfa.esbonio
 
 ---
 
+## 12. Ubuntu — czym się różni
+
+Odtworzenie profilu na `black_mw` 2026-09-07. Poniżej wyłącznie rzeczy, które **nie przeniosły
+się 1:1** — reszta dokumentu obowiązuje bez zmian.
+
+### Tworzenie profilu z CLI: pułapka
+
+`code --profile "studies_AI" --install-extension …` **nie zadziała, dopóki profil nie istnieje** —
+kończy się `Profile 'studies_AI' not found.`. Wbrew intuicji flaga `--profile` tworzy profil
+**tylko przy otwieraniu folderu**, co pomoc CLI mówi wprost: *„Opens the provided folder or
+workspace with the given profile… If the profile does not exist, a new empty one is created."*
+
+Kolejność, która działa — pierwsza komenda przy okazji zapisuje powiązanie folder→profil:
+
+```bash
+code --profile "studies_AI" ~/Documents/pnw_prep     # tworzy profil + wiąże folder
+code --profile "studies_AI" --install-extension ms-python.python
+```
+
+### Ścieżki
+
+| macOS | Ubuntu |
+|---|---|
+| `~/Library/Application Support/Code/User/` | `~/.config/Code/User/` |
+| `~/Library/Application Support/Code/User/profiles/68e22d86/` | `~/.config/Code/User/profiles/407f9a50/` |
+
+`~/.vscode/extensions` jest w tym samym miejscu na obu systemach i jest **wspólne dla
+wszystkich profili** — dopięcie rozszerzenia do profilu nic nie pobiera.
+
+### Wersje: kanał stabilny vs pre-release
+
+Zapytanie do Marketplace API (`flags=914`) zwraca też wersje **pre-release**, więc numery
+z niego bywają wyraźnie wyższe niż to, co instaluje VS Code:
+
+| Rozszerzenie | API (pre-release) | Zainstalowane (stabilne) |
+|---|---|---|
+| `ms-python.python` | 2026.7.2026082601 | 2026.4.0 |
+| `eamodio.gitlens` | 2026.9.50513 | 19.1.0 |
+| `ms-toolsai.jupyter` | 2026.6.2026071501 | 2025.9.1 |
+
+To **nie jest** nieaktualna instalacja — `--update-extensions` odpowiada `No extension to update`.
+Nie „naprawiaj" tego ręcznie.
+
+### LaTeX: brakujący `latexmk`
+
+Są `texlive-base`, `texlive-latex-extra`, `texlive-xetex` (czyli `xelatex` i `pdflatex` działają),
+ale **nie ma `latexmk`**, a to jest domyślny recipe LaTeX Workshopa — kompilacja wywali się
+przy pierwszym zapisie:
+
+```bash
+sudo apt install latexmk
+```
+
+### Remote-SSH stracił sens
+
+Dokument zakładał `ssh-remote+black_mw` jako drogę do GPU. Na tej maszynie GPU jest **lokalne**
+(RTX 5080, driver 580.178.04, CUDA 12.9 w PATH), a `~/.ssh/config` nie istnieje.
+Rozszerzenia remote zostają w profilu na przyszłość, ale dziś nic nie obsługują.
+
+### Środowisko: conda usunięta
+
+`~/miniconda3` (31 GB, 10 środowisk) **usunięte** 2026-09-07 przy przesiadce na uv — conda
+siedziała w PATH **przed** `~/.local/bin`, więc panel Python Environments podsuwałby jej
+środowiska obok `.venv`. Bloki `conda initialize` wycięte z `~/.zshrc` i `~/.bashrc`.
+
+Listy pakietów zachowane w `~/conda_backup_20260907/` (patrz README tamże). Uwaga przy
+odtwarzaniu: **7 z 10 środowisk było uszkodzonych** — miały pakiety w `site-packages`, ale
+żadnej binarki `python` w `bin/`, przez co `conda env export` zwracał dla nich pustkę,
+a `conda run -n <env>` po cichu wykonywał się w `base`. Wiarygodne są pliki
+`*.packages.txt` (czytane wprost z `dist-info`), nie `*.yml`.
+
+### Settings Sync miesza między maszynami
+
+Sync jest **włączony** i ściąga profil Default z Maca. Widać to gołym okiem: po starcie
+VS Code `cmake.environment` w `~/.config/Code/User/settings.json` wraca do ścieżek
+`/Users/mateuszwojtaszek/…darwin-arm64`, nadpisując linuksowe. W settings Default siedzą też
+`parallels-desktop.*`, `/opt/homebrew/*` i `idf.*` z Maca.
+
+Profilu `studies_AI` z Maca **w chmurze nie ma** (sync profili zawiera tylko „Agents"), więc
+`407f9a50` jest lokalny i to on jest wypychany w górę. Skutek uboczny: `window.newWindowProfile:
+"studies_AI"` przyszło z Maca samo, bez ustawiania.
+
+Decyzja, czy zostawić sync włączony, jest otwarta — patrz `CLAUDE.md`.
+
+---
+
 ## Awaryjnie
 
 ```bash
@@ -779,11 +901,16 @@ code --profile "studies_AI" --list-extensions --show-versions
 # Pylance wrócił jako zależność Pythona i dubluje basedpyrighta
 code --profile "studies_AI" --uninstall-extension ms-python.vscode-pylance
 
-# cofnięcie całego setupu profili — VS Code MUSI być zamknięty
+# --- macOS: cofnięcie całego setupu profili (VS Code MUSI być zamknięty) ---
 cp ~/Library/Application\ Support/Code/User/_backup_20260906_193317/settings.json \
    ~/Library/Application\ Support/Code/User/settings.json
 cp ~/Library/Application\ Support/Code/User/_backup_20260906_193317/storage.json \
    ~/Library/Application\ Support/Code/User/globalStorage/storage.json
+
+# --- Ubuntu: odpięcie profilu bez kasowania go ---
+# w GUI: Profiles: Reset Workspace Profiles Associations
+# ręcznie: usuń wpis 407f9a50 z profileAssociations w
+#   ~/.config/Code/User/globalStorage/storage.json
 ```
 
 ---
