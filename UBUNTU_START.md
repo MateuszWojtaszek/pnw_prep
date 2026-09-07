@@ -1,152 +1,127 @@
 # Start na Ubuntu — kolejność kroków
 
-Stan na 2026-09-07. Wszystko poniżej wykonujesz **na Ubuntu**. Kroki są w kolejności
-zależności — 2 jest tańszy teraz niż za tydzień, 3 naprawia szkodę, którą widać na żywo.
-Po każdym kroku jest weryfikacja; jeśli nie przechodzi, nie idź dalej.
+Stan na **2026-09-07, po weryfikacji na maszynie**. Pierwsza wersja tego pliku zakładała
+maszynę świeżo po `git clone`; część kroków jest już wykonana, a jeden z nich (przeniesienie
+repo) zostawił po sobie szkodę, której ówczesna weryfikacja nie wyłapała.
+
+Kroki są w kolejności zależności. Po każdym jest weryfikacja; jeśli nie przechodzi, nie idź dalej.
 
 ---
 
-## 0. Pobierz zmiany
+## Zrobione — zweryfikowane, nie powtarzaj
 
-```bash
-cd ~/Documents/pnw_prep && git pull
-```
-
-Powinny przyjechać: ten plik, poprawki liczb rozszerzeń w `VSCODE_studies_AI.md`
-i poprawka warunku `alwaysUseUv` w sekcji 2.
+| Krok | Stan | Dowód |
+|---|---|---|
+| Repo pod ścieżką z Maca | ✅ | `~/Documents/projects/masters/pnw_prep`, stary katalog nie istnieje |
+| Powiązanie folder → profil `studies_AI` | ✅ | `profileAssociations` → `407f9a50` dla nowej ścieżki |
+| `latexmk` | ✅ | `/usr/bin/latexmk` |
+| `ruff` + `basedpyright` jako dev-zależności | ✅ | grupa `dev` w `pyproject.toml`, commit `cdc7453` wypchnięty |
+| Settings Sync wyłączony | ✅ | `sync.enable = false` w `state.vscdb` |
+| `window.newWindowProfile` | ✅ | linia 34 w `~/.config/Code/User/settings.json` |
+| `~/.claude/settings.json` | ✅ | `model: opus[1m]`, `tui: fullscreen` + `effortLevel`, `theme` |
+| Katalog pamięci projektu | ✅ | `~/.claude/projects/-home-black-mw-Documents-projects-masters-pnw-prep/memory` (pusty) |
+| Sterownik GPU | ✅ | RTX 5080, 580.178.04 |
+| 42 rozszerzenia w profilu | ✅ | `code --profile studies_AI --list-extensions \| wc -l` |
 
 ---
 
-## 1. Odblokowanie pracy
+## 1. Napraw `.venv` po przeniesieniu repo — **blokujące**
 
-Dwie rzeczy, bez których projekt nie działa tak, jak go opisaliśmy.
+`mv` z poprzedniej wersji kroku 2 przeniósł też `.venv`. Launchery w `.venv/bin/` mają
+**bezwzględny shebang** wskazujący na starą ścieżkę, więc dziś 39 z nich jest martwych:
 
-```bash
-sudo apt install -y latexmk
-
-uv add --dev ruff basedpyright
+```
+#!/home/black-mw/Documents/pnw_prep/.venv/bin/python3   ← katalog już nie istnieje
 ```
 
-**Dlaczego `uv add`, skoro w edytorze działa:** cały udokumentowany powód wyboru
-basedpyrighta zamiast Pylance'a brzmiał „da się przypiąć jako dev-zależność i CI sprawdza
-dokładnie to samo, co edytor". Dziś ani ruff, ani basedpyright nie są w grafie zależności —
-działają wyłącznie binarki wożone przez rozszerzenia. To je domyka.
+Objaw: `uv run basedpyright --version` → `Failed to spawn: basedpyright (os error 2)`,
+`sphinx-build` → `bad interpreter`. Plik **istnieje**, brakuje interpretera z shebanga —
+stąd mylący komunikat.
+
+**Dlaczego poprzednia weryfikacja tego nie złapała:** `ruff` to natywna binarka bez shebanga
+i działa mimo przeniesienia. `uv run ruff check .` przechodziło, więc krok 1 wyglądał na zaliczony,
+a `uv run basedpyright --version` uruchomiłeś dopiero po `mv`. `uv sync` tego nie naprawia —
+porównuje metadane pakietów, nie ścieżki w launcherach („Checked 48 packages", zero zmian).
+
+```bash
+cd ~/Documents/projects/masters/pnw_prep
+rm -rf .venv
+uv sync --all-groups
+```
+
+Venv jest w całości odtwarzalny z `uv.lock` i jest w `.gitignore` — kasowanie go nic nie kosztuje.
+Na przyszłość: przenosisz repo → od razu odtwarzasz venva, nie migrujesz go.
+
+**Weryfikacja — wszystkie trzy muszą przejść:**
+
+```bash
+uv run ruff check .            # All checks passed!
+uv run basedpyright --version  # numer wersji, nie "Failed to spawn"
+uv run sphinx-build --version  # sprawdza grupę docs, też była zepsuta
+```
+
+---
+
+## 2. Globalne `~/.claude/CLAUDE.md`
+
+Jedyny brakujący plik konfiguracyjny. `~/.claude/settings.json` już jest, ale reguł
+(zakaz gotowców, tło z C++, wymóg dawania opcji) nadal nie ma — do tego czasu obowiązuje
+sekcja „Jak ze mną pracować" z repo, która jest ich zawężoną kopią.
+
+Utwórz `~/.claude/CLAUDE.md` z treścią z **Załącznika A**.
 
 **Weryfikacja:**
 
 ```bash
-uv run ruff check .          # oczekiwane: All checks passed!
-uv run basedpyright --version
-which latexmk
+test -f ~/.claude/CLAUDE.md && echo "global CLAUDE.md ok"
 ```
 
-**Zacommituj** — to zmiana zależności projektu:
-
-```bash
-git add pyproject.toml uv.lock && git commit -m "dev deps: ruff, basedpyright" && git push
-```
+Po utworzeniu można skrócić notkę w `CLAUDE.md` w repo („Globalne instrukcje leżą na Macu…") —
+przestaje być prawdziwa.
 
 ---
 
-## 2. Zrównaj ścieżkę repo z Makiem
+## 3. Sprzątanie po Macu — kosmetyka, nie blokuje
 
-Na Macu repo leży w `~/Documents/projects/masters/pnw_prep`, na Ubuntu w `~/Documents/pnw_prep`.
-Rozjazd kosztuje w dwóch miejscach: pamięć Claude Code jest kluczowana **ścieżką bezwzględną**
-projektu, a `CLAUDE.md` wskazuje na `~/Documents/projects/masters/VSCODE_studies_AI.md`,
-którego pod tą ścieżką nie ma.
-
-> ⚠️ **Powiązanie folder→profil VS Code też jest kluczowane ścieżką.** Sam `mv` je zerwie
-> i nowy folder otworzy się w profilu `Default`. Druga komenda przepina je z powrotem.
-
-```bash
-mkdir -p ~/Documents/projects/masters
-mv ~/Documents/pnw_prep ~/Documents/projects/masters/pnw_prep
-code --profile "studies_AI" ~/Documents/projects/masters/pnw_prep
-```
-
-**Weryfikacja:** otwórz nowe okno na tym folderze i sprawdź, czy pasek statusu pokazuje
-profil `studies_AI`, a nie `Default`.
-
-Stary wpis w `profileAssociations` będzie wskazywał martwą ścieżkę. Nieszkodliwe;
-do sprzątnięcia przez `Profiles: Reset Workspace Profiles Associations` albo ręcznie
-w `~/.config/Code/User/globalStorage/storage.json`.
-
----
-
-## 3. Wyłącz Settings Sync
-
-Sync ściąga profil `Default` z Maca i **na żywo nadpisuje linuksowe ścieżki macowymi** —
-`cmake.environment` wraca do `/Users/mateuszwojtaszek/…darwin-arm64` po każdym starcie.
-Profilu `studies_AI` w chmurze nie ma, więc sync nic tu nie wnosi, a szkodzi.
-
-W VS Code: `Ctrl+Shift+P` → **`Settings Sync: Turn Off`**.
-W oknie dialogowym **nie zaznaczaj** kasowania danych w chmurze — Mac ma z nich dalej korzystać.
-
-> ⚠️ **`window.newWindowProfile` przyszło z Maca przez sync, nie zostało ustawione lokalnie.**
-> Po wyłączeniu synchronizacji może zniknąć. Sprawdź i w razie czego wpisz ręcznie.
-
-```bash
-grep -n "newWindowProfile" ~/.config/Code/User/settings.json
-```
-
-Jeśli pusto — dodaj do `~/.config/Code/User/settings.json` (to plik profilu `Default`,
-bo klucz ma scope `application`):
-
-```jsonc
-"window.newWindowProfile": "studies_AI"
-```
-
-**Sprzątnięcie po synchronizacji** — obejrzyj, co przyjechało z Maca, i usuń, co nie ma
-sensu na Linuksie:
+Sync jest wyłączony, więc te wpisy już nie wracają, ale przyjechały wcześniej i zostały
+w `~/.config/Code/User/settings.json` (profil `Default`). Wszystkie wskazują na ścieżki,
+których na Linuksie nie ma:
 
 ```bash
 grep -n "mateuszwojtaszek\|homebrew\|parallels\|idf\." ~/.config/Code/User/settings.json
 ```
 
+Dziś to 16 linii w trzech grupach:
+
+- `idf.*` (ESP-IDF) — ścieżki `/Users/mateuszwojtaszek/esp/…`, `/opt/homebrew/opt/python@3.13`
+- `parallels-desktop.*` — Parallels na Linuksie nie istnieje, cała sekcja do usunięcia
+- `cmake.environment` / `cmake.configureArgs` / `cmake.additionalCompilerSearchDirs` —
+  wskazują na `…-darwin-arm64` i `/opt/homebrew/opt/llvm`
+
+Usuń, co nie ma sensu na Linuksie. Wpisy embedded odtworzysz lokalnymi ścieżkami, kiedy
+faktycznie będziesz wracał do STM32 na tej maszynie — nie rób tego teraz.
+
+Dwa martwe wpisy do sprzątnięcia przy okazji (oba nieszkodliwe):
+
+- `profileAssociations` ma wciąż `file:///home/black-mw/Documents/pnw_prep` → `407f9a50`.
+  `Profiles: Reset Workspace Profiles Associations` albo ręcznie w
+  `~/.config/Code/User/globalStorage/storage.json`.
+- `~/.claude/projects/-home-black-mw-Documents-pnw-prep/` — pamięć kluczowana starą ścieżką.
+  Nowy katalog już istnieje i jest pusty, więc przenosić nie ma czego; stary możesz skasować.
+
 **Weryfikacja:** zrestartuj VS Code i powtórz `grep` — wpisy mają nie wracać.
 
 ---
 
-## 4. Claude Code
-
-```bash
-mkdir -p ~/.claude
-```
-
-Utwórz `~/.claude/CLAUDE.md` z treścią z **Załącznika A** — to twoje globalne zasady
-(zakaz gotowców, tło z C++, wymóg dawania opcji). Bez tego Claude na Ubuntu będzie
-pisał kod za ciebie.
-
-`~/.claude/settings.json` — dwa klucze:
-
-```json
-{ "model": "opus", "tui": "fullscreen" }
-```
-
-**Pamięć projektu (opcjonalnie).** Katalog pamięci nazywa się ścieżką projektu
-z zamienionymi `/` na `-`. Policz go i utwórz:
-
-```bash
-cd ~/Documents/projects/masters/pnw_prep
-python3 -c "import os; print(os.getcwd().replace('/','-'))"
-mkdir -p ~/.claude/projects/$(python3 -c "import os; print(os.getcwd().replace('/','-'))")/memory
-```
-
-Zawartość (8 notatek + `MEMORY.md`) przenieś z Maca, jeśli chcesz, ale **traktuj pamięć
-jak cache** — trwałe ustalenia i tak są w `CLAUDE.md` w repo, który jedzie z gitem.
-Nie kopiuj `history.jsonl`, `sessions/`, `shell-snapshots/` ani transkryptów: to stan
-lokalny maszyny, pełen macowych ścieżek.
-
----
-
-## 5. Weryfikacja końcowa
+## 4. Weryfikacja końcowa
 
 Wszystko musi przejść:
 
 ```bash
 cd ~/Documents/projects/masters/pnw_prep
-uv run ruff check .                                   # All checks passed!
+uv run ruff check .                                    # All checks passed!
 uv run basedpyright --version
+uv run sphinx-build --version
 which uv latexmk
 nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
 code --profile "studies_AI" --list-extensions | wc -l  # 42
@@ -156,7 +131,7 @@ git status --short                                     # czysto
 
 ---
 
-## 6. Pierwsze zadanie: etap 1 z planu
+## 5. Pierwsze zadanie: etap 1 z planu
 
 Środowisko stoi, ale **projekt nadal nie ma torcha, Hydry ani MLflow** —
 `dependencies = []` w `pyproject.toml`. To jest pierwsza rzecz z etapu 1.
@@ -165,6 +140,9 @@ Przy torchu pamiętaj: domyślne koło z PyPI nie wystarczy, bo 5080 to Blackwel
 i potrzebny jest build `cu128+`. W `uv` robi się to przez zadeklarowanie osobnego indeksu
 (`[[tool.uv.index]]`) i przypięcie do niego pakietu w `[tool.uv.sources]` — **nie** przez
 `pip install` do venva obok `uv.lock`.
+
+Otwartą decyzją zakresową pozostaje dataset: **PanNuke** to propozycja czekająca na twoje
+potwierdzenie (punkt 4 „decyzji zamkniętych" w `CLAUDE.md`) — bez niej etap 1 nie ma czego wczytać.
 
 Kryterium ukończenia etapu 1: widzisz obok siebie patch i jego maskę instancyjną,
 a MLflow zalogował pusty przebieg.
